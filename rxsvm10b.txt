@@ -1,0 +1,27 @@
+                          Upload Information Template for Hobbes.nmsu.edu
+                          ===============================================
+
+        Archive Filename: rxsvm10b.zip
+       Short Description: Alternate Rexx sockets API version 1.0b
+        Long Description: Alternate Rexx sockets library compatible with VM/ESA and
+                          OS/390 Rexx sockets API.  Alpha version 1.0 with bugfixes.
+      Proposed directory
+           for placement: /pub/os2/dev/rexx
+
+               Your name: Peter Flass
+           Email address: Peter_Flass@Yahoo.com
+    Program contact name: (same)
+   Program contact email: (same)
+             Program URL: (none) 
+
+      Would you like the
+   contact email address
+    included in listings? yes
+
+Operating System/Version: Warp Version 4 
+ Additional requirements: EMX runtime, TCP/IP
+
+                Replaces: rxsvm10a.zip
+
+
+

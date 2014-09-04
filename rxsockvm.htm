@@ -1,0 +1,380 @@
+<html>
+
+<head>
+<title>Documentation for alternate Rexx Sockets API</title>
+<meta name="Author" content="Peter Flass">
+<meta name="keywords" content="Rexx, TCP/IP, sockets, programming, OS/2, VM/ESA">
+</head>
+
+<body>
+<a name="top">
+<h2>REXXSOCKVM: An alternate Rexx Sockets API</h2>
+<h3>Version 1.00a</h3>
+The Rexx sockets API supplied with OS/2 TCP/IP is significantly different from 
+the APIs supplied with VM/ESA and OS/390.  REXXSOCKVM supplies an alternate API
+which is roughly source-compatible with the mainframe versions, eliminating one
+obstacle to porting Rexx programs.
+<p>
+This API is intended to be compatible with that described in <cite>VM/ESA Rexx/VM Reference
+Version 2 Release 3.0</cite> SC24-5770-02.  A PDF version of this manual is available
+<a href="http://www.vm.ibm.com/pubs/pdf/hcse2a10.pdf">online</a>.  With the exceptions 
+listed below this manual
+or the similar OS/390 Manual <cite>IBM TCP/IP for MVS Application Programming Reference
+Version 3 Release 2 </cite> SC31-7187-02 can be used for reference.
+<p>
+Version 1.0 of the API should be considered an alpha.  Code is complete except for
+the TRANSLATE and SELECT functions, except as noted below.  However some functions and options 
+have not been completely tested.  I developed REXXSOCKVM to support another project
+and wanted to release the alpha version pending further work.  Bug reports, 
+especially if accompanied by a fix, are welcomed.  Please report bugs to:
+<a href="mailto: Peter_Flass@Yahoo.com">the author</a>.
+<p>
+<ul>
+<li><a href="#license">License</a>
+<li><a href="#using">Using RXSOCKVM</a>
+<li><a href="#calls">RXSOCKVM calls</a>
+<li><a href="#ret">Returned values</a>
+<li><a href="#code">Initialization/Termination code</a>
+<li><a href="#build">Rebuilding the RXSOCKVM dll</a>
+<li><a href="#change">Change log</a>
+</ul>
+<hr>
+<a name="license">
+<p>
+<h4>License:</h4>
+RXSOCKVM is copyright &copy;Peter R. Flass, 2000.
+<break>
+Permission is granted to freely distribute and incorporate RXSOCKVM into other applications,
+provided that this notice is retained in the documentation.
+<hr>
+<a name="using">
+<p>
+<h4>Using RXSOCKVM:</h4>
+RXSOCKVM uses EMX sockets support.  This version requires the EXM 0.9d libraries installed.
+<break>To use RXSOCKVM do the following:
+<ol>
+<li>Copy rxsockvm.dll to a directory in your libpath.
+<li>Insert the <a href="#code">initialization/termination code</a> in your Rexx program.
+</ol>
+<p>
+All RXSOCKVM calls have a common format:
+<break><pre><tt>
+  ret = Socket( &lt;command&gt [, &lt;parameters&gt;...] )
+</tt></pre>
+<break>where different commands take a variable number of parameters as indicated.
+<p>
+the returned value ('ret' in the above example) will contain either:
+<ul>
+<li>A return code of "0" optionally followed by additional data as described for
+each command below.
+<li>A non-zero return code followed by an error acronym and a descriptive error
+message.
+</ul>
+<p>
+<a name="calls"></a>
+<hr>
+<h3>RXSOCKVM Calls:</h3>
+(case is insignificant in parameters, 
+<break>[] indicates optional parameter, | indicates alternatives)
+<p>
+<table border=1 frame=box rules=all valign=top>
+
+<tr><td>ret = Socket( 'Accept', socketid )
+<td><i>socketid </i> is a socket number as returned by the Socket( 'Socket' ... ) call
+
+<tr><td>ret = Socket( 'Close', socketid )
+
+<tr><td>ret = Socket( 'Connect', socketid, socketname )
+<td><i>socketname </i> is a socket's network address consting of domain port ID and IP address.
+<break>example: "AF_INET 1234 1.2.3.4"
+
+<tr><td>ret = Socket( 'Fcntl', socketid, 'F_GETFL' )
+<tr><td>ret = Socket( 'Fcntl', socketid, 'F_SETFL', fvalue )
+<td><i>fvalue </i> can be 'NON-BLOCKING' or 'FNDELAY' or 'BLOCKING' or '0'
+
+<tr><td>ret = Socket( 'GetClientId' [, domain] )
+<td><i>domain </i> can be 'AF_INET' or '0'
+
+<tr><td>ret = Socket( 'GetDomainName' )
+
+<tr><td>ret = Socket( 'GetHostByAddr' [, ipaddress] )
+<td><i>ipaddress </i> can be 'INADDR_ANY' or 'ANY' or 'INADDR_BROADCAST' or 'BROADCAST'
+<break>or an IP address in dotted-decimal notation
+
+<tr><td>ret = Socket( 'GetHostByName' [, hostname | fullhostname] )
+<td><i>hostname </i> is the host processor name as a character string.
+<break><i>fullhostname </i> is the fully qualified host name.
+
+<tr><td>ret = Socket( 'GetHostId' )
+
+<tr><td>ret = Socket( 'GetHostName'  )
+
+<tr><td>ret = Socket( 'GetPeerName', socketid )
+
+<tr><td>ret = Socket( 'GetProtoByName', protocolname )
+<td><i>Protocolname </i> is the name of a protocol: 'IP', 'TCP' or 'UDP'.
+
+<tr><td>ret = Socket( 'GetProtoByNumber', protocolnumber )
+
+<tr><td>ret = Socket( 'GetServByName', servicename [, protocolname] )
+<td><i>servicename> </i> is the name of a service such as 'TELNET'.
+
+<tr><td>ret = Socket( 'GetServByPort', portid [, protocolname] )
+<td><i>portid </i> is a port number, 'INPORT_ANY' or 'ANY'.
+
+<tr><td>ret = Socket( 'GetSockOpt', socketid, level, optname )
+<td><table>
+  <tr><td><i>level </i> is 'SOL_SOCKET'.
+  <tr><td><i>optname </i>is one of the following:
+  <table>
+  <tr><td>'SO_ASCII'<td>'SO_BROADCAST'<td>'SO_DEBUG'
+  <tr><td>'SO_EBCDIC'<td>'SO_ERROR'<td>'SO_KEEPALIVE'
+  <tr><td>'SO_LINGER'<td>SO_OOBINLINE'<td>'SO_SNDBUF'
+  <tr><td>'SO_REUSEADDR'<td>'SO_TYPE'
+  </table>
+</table>
+
+<tr><td>ret = Socket( 'GiveSocket', socketid, clientid )
+<td>Not supported by OS/2 TCP/IP.
+
+<tr><td>ret = Socket( 'Initialize', subtaskid [, 40|maxdesc [ TCP/IP userid] ] )
+<td><table>
+  <tr><td><i>subtaskid</i> is the name of the "socket set", 1-8 characters.
+    <break>RXSOCKVM allows only one active socket set.
+  <tr><td><i>maxdesc </i> is the number of sockets in the "socket set".
+  <tr><td><i>TCP/IP userid </i> is ignored.
+  </table>
+
+<tr><td>ret = Socket( 'ioctl', socketid, icmd [, ivalue ] )
+<td><i>icmd </i> is one of the following:
+<table>
+<tr><td>'FIONBIO'<td>'FIONREAD'
+</table>
+
+<tr><td>ret = Socket( 'Listen', socketid [, 10|backlog ])
+<td><i>backlog </i> is the number of pending connection requests.
+
+<tr><td>ret = Socket( 'Read', socketid [, 10000|maxlength ] )
+<td><i>maxlength </i> is the maximum length of data to be read
+
+<tr><td>ret = Socket( 'Recv', socketid [, 10000|maxlength [, recvflags] ] )
+<td><i>recvflags </i> is 'MSG_OOB' or 'OOB' or 'OUT_OF_BAND'
+<break>and/or 'MSG_PEEK' or 'PEEK'.
+
+<tr><td>ret = Socket( 'RecvFrom', socketid [, 10000|maxlength [, recvflags] ] )
+
+<tr><td>ret = Socket( 'Resolve', ipaddress|hostname|fullhostname [, timeout ] )
+<td><i>timeout </i> is a positive integer indicating
+<break> the maximum wait time in sec.
+
+<tr><td>ret = Socket( 'Select', [, mask [, 'FOREVER'|timeout ] )
+<td><i>mask </i> is:
+<table>
+  <tr><td>['Read' socketlist]
+  <tr><td>['Write' socketlist]
+  <tr><td>['Exception' socketlist]
+  <tr><td><i>socketlist </i> is a list of socketids
+  <tr><td>'Read', 'Write', and 'Exception' can be in any order.
+  </table>
+
+<tr><td>ret = Socket( 'Send', socketid , data [, sendflags ] )
+<td><table>
+  <tr><td><i>data </i> is the message string to be sent.
+  <tr><td><i>sendflags </i> are 'MSG_OOB' or 'OOB' or 'OUT_OF_BAND'
+  <tr><td>and/or 'MSG_DONTROUTE' or 'DONTROUTE'
+  </table>
+
+<tr><td>ret = Socket( 'SendTo', socketid , data [, sendflags [, destination name ] ] )
+<td><i>destination name </i> is the destination network address.
+
+<tr><td>ret = Socket( 'SetSockOpt', socketid, level, optname, optvalue )
+<td><i>optname </i> - see 'GetSockOpt'
+
+<tr><td>ret = Socket( 'Shutdown', socketid [, 'BOTH'|how ] )
+<td><i>how </i> is 'FROM' or 'RECEIVE' or 'RECEIVING' or 'READ' or 'READING'
+<break>or 'TO' or 'SEND' or 'SENDING' or 'WRITE' or 'WRITING'
+
+<tr><td>ret = Socket( 'Socket' [, 'AF_INET' [, 'SOCK_STREAM'|'SOCK_DGRAM'|'SOCK_RAW'|'RAW' 
+[, 'IPPROTO_TCP'|'IPPROTO_UDP' ] ] ] )
+
+<tr><td>ret = Socket( 'SocketSetList' )
+
+<tr><td>ret = Socket( 'SocketSetStatus' [, subtaskid ] )
+
+<tr><td>ret = Socket( 'TakeSocket', clientid, socketid )
+<td>Not supported by OS/2 TCP/IP.
+
+<tr><td>ret = Socket( 'Terminate' [, subtaskid ] )
+
+<tr><td>ret = Socket( 'Trace' [, setting [, modifier ] ] )
+<td>Not supported by OS/2 TCP/IP.
+
+<tr><td>ret = Socket( 'Translate', string, how )
+<td>Not implemented by this version of RXSOCKVM.
+
+<tr><td>ret = Socket( 'Version' )
+
+<tr><td>ret = Socket( 'Write', socketid,data )
+
+</table>
+<p>
+<a name="ret">
+<h3>Returned values:</h3>
+(if other than 0)
+<p>
+<table border=1 frame=box rules=all valign=top>
+
+<tr><td>'Accept'
+<td>"0 socketid socketname" as "0 8 AF_INET 1234 19.8.7.6"
+
+<tr><td>'Fcntl'
+<td>if 'F_GETFL' is specified returns "0 characteristic"
+
+<tr><td>'GetClientId'
+<td>"0 AF_INET Userid <i>subtaskid</i>".
+
+<tr><td>'GetDomainName'
+<td>"0  domain_name".
+
+<tr><td>'GetHostByAddr'
+<td>"0 fully-qualified_host_name".
+
+<tr><td>'GetHostByName'
+<td>"0 ip_address".
+
+<tr><td>'GetHostId'
+<td>"0 ip_address".
+
+<tr><td>'GetHostName'
+<td>"0 host_name".
+
+<tr><td>'GetPeerName'
+<td>"0 socket_name".("domain portid ipaddress")
+
+<tr><td>'GetProtoByName'
+<td>"0 protocol_number". (e.g. 'TCP'->6).
+
+<tr><td>'GetProtoByNumber'
+<td>"0 protocol_name". (e.g. 6->'TCP').
+
+<tr><td>'GetServByName'
+<td>"0 service_name portid protocolname".
+
+<tr><td>'GetServByPort'
+<td>"0 the domain_name".
+
+<tr><td>'GetSockName'
+<td>"0  socket_name". ("domain portid ipaddress").
+
+<tr><td>'GetSockOpt'
+<td>"0 option_status".
+
+<tr><td>'Initialize'
+<td>"0 subtaskid number_of_sockets 'TCPIP' "
+
+<tr><td>'Ioctl'
+<td>"0 operating_characteristics".
+
+<tr><td>'Read'
+<td>"0 length_of_data_read data".
+
+<tr><td>'Recv'
+<td>"0 length_of_data_read data".
+
+<tr><td>'RecvFrom'
+<td>"0 network_address length_of_data_read data".
+
+<tr><td>'Select'
+<td>"0 number_of_seckets socket_list".
+<break>
+socket_list example: "Read 1 2 Write 3 Exception"
+
+<tr><td>'Send'
+<td>"0 length_of_data_written".
+
+<tr><td>'SendTo'
+<td>"0 length_of_data_written".
+
+<tr><td>'Socket'
+<td>"0 new_socket_id".
+
+<tr><td>'SocketSet'
+<td>"0 subtaskid".
+
+<tr><td>'SocketSetList'
+<td>"0 subtaskid".
+<break>RXSOCKVM allows only one socket set.
+
+<tr><td>'SocketSetStatus'
+<td>"0 subtaskid 'Connected' 'Free' # 'Used' #".
+
+<tr><td>'Translate'
+<td>"0 length_of_translated_string translated_string".
+
+<tr><td>'Version'
+<td>"0 'RxSockVM 1.00 14 July 2000'"
+
+<tr><td>'Write'
+<td>"0 length_of_data_written".
+
+</table>
+
+<p>
+<a name="code"></a>
+<hr>
+<h3>Initialization/Termination code for RXSOCKVM</h3>
+<tt><pre>
+/* Required initialization code */
+RC = RxFuncAdd( 'Socket', 'RXSOCKVM', 'Socket' )
+If RC<>0 Then Do
+  Say "RxFuncAdd for RXSOCKVM returned" RC
+  End
+
+/* Suggested initialization code to make sure */
+/* that DLL is released after use             */
+Signal On Error   Name Cleanup
+Signal On Failure Name Cleanup
+Signal On Halt    Name Cleanup
+Signal On Syntax  Name Cleanup
+
+   ... Your code goes here ...
+
+/* Required Termination code                     */
+/* Prior to this you might also want to execute  */
+/* some application-specific cleanup: close, etc */
+
+Cleanup:
+RC = RxFuncDrop( 'Socket' )
+
+</pre></tt>
+<p>
+
+<a name="build"></a>
+<hr>
+<h3>Rebuilding RXSOCKVM</h3>
+RXSOCKVM was compiled using EMX 0.9d and EMX sockets.  
+It also requires base OS/2 TCP/IP support.
+<p>
+To rebuild the dll, cd to the directory containg the sources
+and issue the command
+<break>
+<pre><tt>
+   make
+</tt></pre>
+<p>
+You should then copy the rebuilt dll to replace the original in whatever directory
+you placed it at install time.  You will most likely have to end
+all instances of usage before copying.
+<p>
+
+<a name="change"></a>
+<hr>
+<h3>Change Log</h3>
+<table>
+<tr><td>08 Aug 2000<td>1.00a<td>Cleanup termination code and error messages.
+<tr><td>01 Aug 2000<td>1.00<td>Initial release.
+</table>
+
+</body>
+
+</html>

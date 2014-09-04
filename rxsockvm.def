@@ -1,0 +1,9 @@
+LIBRARY RXSOCKVM INITINSTANCE
+
+DESCRIPTION 'VM/ESA-compatible Rexx sockets library'
+
+DATA MULTIPLE NONSHARED
+
+EXPORTS
+  Socket @1
+  _DLL_InitTerm@2
